@@ -13,7 +13,7 @@ EXPOSE 8180
 EXPOSE 8443
 WORKDIR /code
 
-VOLUME ["/code"]
+#VOLUME ["/code"]
 
 # Copy the application's code
 COPY . /code
