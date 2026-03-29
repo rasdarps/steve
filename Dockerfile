@@ -1,36 +1,18 @@
+# STAGE 1: Build the application
+FROM eclipse-temurin:21-jdk AS build
+WORKDIR /app
+COPY . .
+# Run the maven wrapper to build the .war file
+RUN ./mvnw clean package -Pdocker -DskipTests
+
+# STAGE 2: Run the application
 FROM eclipse-temurin:21-jdk
+WORKDIR /app
 
-ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
-
-MAINTAINER Ling Li
-
-# Download and install dockerize.
-# Needed so the web container will wait for MariaDB to start.
-ENV DOCKERIZE_VERSION v0.19.0
-RUN curl -sfL https://github.com/powerman/dockerize/releases/download/"$DOCKERIZE_VERSION"/dockerize-`uname -s`-`uname -m` | install /dev/stdin /usr/local/bin/dockerize
-#comment all
-#EXPOSE 8180
-#EXPOSE 8443
-#WORKDIR /code
-
-#VOLUME ["/code"]
-
-# Copy the application's code
-#COPY . /code
-
-# Wait for the db to startup(via dockerize), then 
-# Build and run steve, requires a db to be available on port 3306
-#CMD dockerize -wait tcp://mariadb:3306 -timeout 60s && \
-	#./mvnw clean package -Pdocker -Djdk.tls.client.protocols="TLSv1,TLSv1.1,TLSv1.2" && \
-	#java -XX:MaxRAMPercentage=85 -jar target/steve.war
+# Copy only the built .war file from the build stage
+COPY --from=build /app/target/steve.war .
 
 EXPOSE 8080
-WORKDIR /code
 
-# Copy the application's code
-COPY . /code
-
-# Skip the wait script and the build step (Railway does the build during 'deploy')
-# We just want to run the application directly.
-CMD ["java", "-XX:MaxRAMPercentage=85", "-jar", "target/steve.war"]
-
+# Run the application
+CMD ["java", "-XX:MaxRAMPercentage=85", "-jar", "steve.war"]
