@@ -3,7 +3,7 @@ FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
 COPY . .
 # Run the maven wrapper to build the .war file
-RUN ./mvnw clean package -Pdocker -DskipTests
+RUN ./mvnw clean package -DskipTests
 
 # STAGE 2: Run the application
 FROM eclipse-temurin:21-jdk
