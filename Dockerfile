@@ -1,18 +1,20 @@
-# STAGE 1: Build the application
+# STAGE 1: Build
 FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
 COPY . .
-# Run the maven wrapper to build the .war file
+RUN chmod +x mvnw
+# Build without the DB-hungry profile
 RUN ./mvnw clean package -DskipTests
 
-# STAGE 2: Run the application
+# STAGE 2: Run
 FROM eclipse-temurin:21-jdk
 WORKDIR /app
 
-# Copy only the built .war file from the build stage
-COPY --from=build /app/target/steve.war .
+# Using a wildcard (*) to find the war file regardless of version (e.g., steve-2.0.war)
+# and renaming it to 'steve.war' for the CMD to find easily.
+COPY --from=build /app/target/*.war steve.war
 
 EXPOSE 8080
 
-# Run the application
+# The Start Command
 CMD ["java", "-XX:MaxRAMPercentage=85", "-jar", "steve.war"]
